@@ -5,15 +5,15 @@ export const CSS = {
     },
 
     dot: {
-        radius: 10,
+        radius: 10
     },
 
     hide: {
         visibility: 'hidden'
     },
 
-    line1: {
-        width: 20,
-        color: 'red',
+    line: {
+        width: 3,
+        color: 'red'
     }
-}
+};

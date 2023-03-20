@@ -3,7 +3,13 @@ import availableProperties from './cssEngine/availableProperties';
 import { render } from './render';
 import Store from '../Store';
 import { getEquationFrom2Points } from './geometry/line/get-equation-from-2-points';
-import { getProxyEventHandlerObject } from './eventsHandles/get-proxy-event-handerls-object';
+import { clickRegister } from './events-engine/events-register/click-register';
+import { mouseupRegister } from './events-engine/events-register/mouseup-register';
+import { mousedownRegister } from './events-engine/events-register/mousedown-register';
+import { mouseleaveRegister } from './events-engine/events-register/mouseleave-register';
+import { mouseoverRegister } from './events-engine/events-register/mouseover-register';
+import { mouseenterRegister } from './events-engine/events-register/mouseenter-register';
+import selfEvent from './events-engine/selfEvent';
 
 class Shape {
     constructor(link, id) {
@@ -27,6 +33,13 @@ class Shape {
                 }
             });
         });
+
+        mouseoverRegister({ id: this.id });
+        mouseenterRegister({ id: this.id });
+        mouseleaveRegister({ id: this.id });
+        mouseupRegister({ id: this.id });
+        mousedownRegister({ id: this.id });
+        clickRegister({ id: this.id });
     }
 
     get system() {
@@ -81,6 +94,7 @@ class Shape {
             }
         };
     }
+
     get classList() {
         let link = this.link;
 
@@ -211,87 +225,42 @@ class Shape {
         this.link.pointer = this.isPointer;
     }
 
-    set ondrag(callback) {
-        Store.state.ondrag[this.id] = callback;
-
-        if (!Store.state.__mouseMoveTargets.includes(this.id)) {
-            Store.state.__mouseMoveTargets.push(this.id);
-        }
-    }
-
     set onmouseover(callback) {
-        Store.state.mouseover[this.id] = callback;
-
-        if (!Store.state.__mouseMoveTargets.includes(this.id)) {
-            Store.state.__mouseMoveTargets.push(this.id);
-        }
+        Store.state.mouseover[this.id][0] = callback;
     }
 
     set onmouseenter(callback) {
-        if (!Store.state.mouseenter[this.id]) {
-            Store.state.mouseenter[this.id] = getProxyEventHandlerObject({
-                onAdd: () => {
-                    if (!Store.state.__mouseMoveTargets.includes(this.id)) {
-                        Store.state.__mouseMoveTargets.push(this.id);
-                    }
-                },
-
-                onBecomeEmpty: () => {
-                    if (Store.state.__mouseMoveTargets.includes(this.id)) {
-                        Store.state.__mouseMoveTargets.splice(
-                            Store.state.__mouseMoveTargets.indexOf(this.id),
-                            1
-                        );
-                    }
-                }
-            });
-        }
-
         Store.state.mouseenter[this.id][0] = callback;
     }
 
     set onmouseleave(callback) {
-        if (!Store.state.mouseleave[this.id]) {
-            Store.state.mouseleave[this.id] = getProxyEventHandlerObject({
-                onAdd: () => {
-                    if (!Store.state.__mouseMoveTargets.includes(this.id)) {
-                        Store.state.__mouseMoveTargets.push(this.id);
-                    }
-                },
-
-                onBecomeEmpty: () => {
-                    if (Store.state.__mouseMoveTargets.includes(this.id)) {
-                        Store.state.__mouseMoveTargets.splice(
-                            Store.state.__mouseMoveTargets.indexOf(this.id),
-                            1
-                        );
-                    }
-                }
-            });
-        }
-
         Store.state.mouseleave[this.id][0] = callback;
     }
 
-    set ondrag(callback) {
-        Store.state.mouseenter[this.id][1] = callback;
-    }
-
     set onclick(callback) {
-        if (!Store.state.__mouseClickTargets.includes(this.id)) {
-            Store.state.__mouseClickTargets.push(this.id);
-        }
-
-        Store.state.click[this.id] = callback;
+        Store.state.click[this.id][0] = callback;
     }
 
-    get isLine() {
-        let distance = 3;
+    set onmouseup(callback) {
+        Store.state.mouseup[this.id][0] = callback;
+    }
 
-        return (
-            Math.abs(this.link.start.x - this.link.check.x) < distance &&
-            Math.abs(this.link.start.y - this.link.check.y) < distance
-        );
+    set onmousedown(callback) {
+        Store.state.mousedown[this.id][0] = callback;
+    }
+
+    set ondrag(callback) {
+        const move = e => {
+            callback(selfEvent(e));
+        };
+
+        Store.state.mousedown[this.id][1] = e => {
+            Store.state.canvas.addEventListener('mousemove', move);
+        };
+
+        Store.state.mouseup[this.id][1] = e => {
+            Store.state.canvas.removeEventListener('mousemove', move);
+        };
     }
 
     remove() {
@@ -299,10 +268,12 @@ class Shape {
         delete Store.state.__shapes[this.id];
         //удаляем инстанс класса
         delete Store.state.shapes[this.id];
+
         //удаляем слушатели событий
         delete Store.state.mouseenter[this.id];
         delete Store.state.mouseleave[this.id];
-        delete Store.state.mouseenter[this.id];
+        delete Store.state.mouseup[this.id];
+        delete Store.state.mousedown[this.id];
         delete Store.state.click[this.id];
 
         let MMT = Store.state.__mouseMoveTargets;

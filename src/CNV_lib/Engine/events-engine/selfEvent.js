@@ -1,9 +1,10 @@
-import Store from "../../Store";
-import mousePosition from "./mousePosition";
+import Store from '../../Store';
+import mousePosition from './mousePosition';
 
-function selfEvent(e, target){
+function selfEvent(e, target) {
     let state = Store.getState();
     let [clientX, clientY] = mousePosition(e);
+
     return {
         clientY: clientY,
         clientX: clientX,
@@ -23,8 +24,8 @@ function selfEvent(e, target){
         y: e.y - state.shift.y,
         which: e.which,
         target,
-        shiftKey: e.shiftKey,
-    }
+        shiftKey: e.shiftKey
+    };
 }
 
 export default selfEvent;

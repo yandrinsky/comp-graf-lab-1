@@ -21,6 +21,8 @@ export default {
             mouseleave: {},
             mouseenter: {}, //{ id1: {0: callback, 1: callback, ...}, id2: {0: callback} }
             click: {},
+            mousedown: {},
+            mouseup: {},
             __mouseMoveTargets: [],
             __mouseClickTargets: [],
             shouldRenderUpdates: true,

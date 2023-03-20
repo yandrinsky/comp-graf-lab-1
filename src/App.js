@@ -9,9 +9,8 @@ import { getStraightCollisionCoordinates } from './CNV_lib/Engine/geometry/colli
 import { useKIOState } from './KIO/use-KIO-state';
 import { cache } from './KIO/cache';
 import hash from 'object-hash';
-import mousePosition from './CNV_lib/Engine/eventsHandles/mousePosition';
+import mousePosition from './CNV_lib/Engine/events-engine/mousePosition';
 import { getPerpendicularLineEquationThrough } from './CNV_lib/Engine/geometry/line/get-perpendicular-line-equation-through';
-import Store from './CNV_lib/Store';
 import { getSign } from './CNV_lib/Engine/utils/get-sign';
 
 // const globalOBJ = {
@@ -241,7 +240,7 @@ function App() {
             settings: { draggableCanvas: false }
         });
 
-        const mainCircle = CNV.createCircle({ x0: 700, y0: 500, className: 'mainCircle' });
+        const mainCircle = CNV.createCircle({ x0: 700, y0: 300, className: 'mainCircle' });
 
         const dot = CNV.createCircle({ x0: 500, y0: 300, className: 'dot' });
 
@@ -251,6 +250,7 @@ function App() {
             x1: 0,
             y1: 0
         });
+
         const line2 = CNV.createLine({
             x0: dot.link.getCoords().start.x,
             y0: dot.link.getCoords().start.y,
@@ -258,15 +258,29 @@ function App() {
             y1: 0
         });
 
+        const rangeLine = CNV.createLine({
+            x0: 800,
+            y0: 480,
+            x1: 980,
+            y1: 480,
+            className: 'line'
+        });
+
+        const rangeCircle = CNV.createCircle({
+            x0: 800,
+            y0: 480,
+            className: 'line'
+        });
+
         const movingMainCircle = e => {
-            const [x, y] = mousePosition(e);
+            const { clientX: x, clientY: y } = e;
 
             const res = natasha({
                 xDot: dot.link.getCoords().start.x,
                 yDot: dot.link.getCoords().start.y,
                 xCircle: x,
                 yCircle: y,
-                rCircle: 30
+                rCircle: mainCircle.link.getCSS().radius
             });
 
             CNV.combineRender(() => {
@@ -286,14 +300,14 @@ function App() {
         };
 
         const movingDot = e => {
-            const [x, y] = mousePosition(e);
+            const { clientX: x, clientY: y } = e;
 
             const res = natasha({
                 xDot: x,
                 yDot: y,
                 xCircle: mainCircle.link.getCoords().start.x,
                 yCircle: mainCircle.link.getCoords().start.y,
-                rCircle: 30
+                rCircle: mainCircle.link.getCSS().radius
             });
 
             CNV.combineRender(() => {
@@ -329,42 +343,28 @@ function App() {
             });
         };
 
-        const moveMainCircle = e => {
-            CNV.getState().canvas.addEventListener('mousemove', movingMainCircle);
+        dot.ondrag = movingDot;
+        mainCircle.ondrag = movingMainCircle;
+
+        CNV.createLine({ x0: 10, y0: 10, x1: 100, y1: 100, x2: 300, y2: 300 });
+
+        rangeCircle.ondrag = e => {
+            if (
+                e.clientX > rangeLine.link.getCoords().start.x &&
+                e.clientX < rangeLine.link.getCoords().end.x
+            ) {
+                mainCircle.style.radius = 30 + (e.clientX - rangeLine.link.getCoords().start.x) / 5;
+
+                const { x, y } = mainCircle.link.getCoords().start;
+                movingMainCircle({ clientX: x, clientY: y });
+
+                rangeCircle.update.start.x = e.clientX;
+            }
         };
 
-        const moveDot = e => {
-            CNV.getState().canvas.addEventListener('mousemove', movingDot);
-        };
-
-        const stop = () => {
-            CNV.getState().canvas.removeEventListener('mousemove', movingMainCircle);
-            CNV.getState().canvas.removeEventListener('mousemove', movingDot);
-            CNV.getState().canvas.removeEventListener('mouseup', stop);
-        };
-
-        mainCircle.onmouseenter = () => {
-            CNV.getState().canvas.addEventListener('mousedown', moveMainCircle);
-            CNV.getState().canvas.addEventListener('mouseup', stop);
-        };
-
-        mainCircle.onmouseleave = () => {
-            CNV.getState().canvas.removeEventListener('mousedown', moveMainCircle);
-        };
-
-        dot.onmouseenter = () => {
-            CNV.getState().canvas.addEventListener('mousedown', moveDot);
-            CNV.getState().canvas.addEventListener('mouseup', stop);
-        };
-
-        dot.onmouseleave = () => {
-            CNV.getState().canvas.removeEventListener('mousedown', moveDot);
-        };
+        const { x, y } = mainCircle.link.getCoords().start;
+        movingMainCircle({ clientX: x, clientY: y });
     }, []);
-
-    const [arr, setArr] = useState(['fdsgd']);
-
-    const newArr = [];
 
     return (
         <div className="App">

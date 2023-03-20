@@ -20,7 +20,6 @@ export const getProxyEventHandlerObject = ({ onBecomeEmpty, onAdd, onRemove }) =
                 if (value === undefined || value === null) {
                     onRemoveBehavior({ target, p });
                 } else {
-                    console.log('onAddBehavior');
                     onAddBehavior({ target, p, value });
                 }
 

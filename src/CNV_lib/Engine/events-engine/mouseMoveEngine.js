@@ -12,8 +12,11 @@ function mouseMoveEngine(e) {
     const successCallback = (link, e) => {
         let selfE = selfEvent(e, Store.state.shapes[link.id]);
 
-        if (Store.state.mouseover[link.id]) {
-            Store.state.mouseover[link.id](selfE);
+        if (Object.keys(Store.state.mouseover[link.id]).length) {
+            for (let key in Store.state.mouseover[link.id]) {
+                Store.state.mouseover[link.id][key](selfE);
+            }
+
             needToRedraw = true;
         }
 
