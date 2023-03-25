@@ -1,40 +1,10 @@
 import React, { useEffect } from 'react';
 import { CNV as CNV_lib } from './CNV_lib/library';
 import { CSS } from './css';
+import { getCircleTangentPoints } from './app.utills';
+import './app.css';
 
-const getCircleTangentPoints = ({ xCircle: x1, yCircle: y1, rCircle: r1, xDot: x0, yDot: y0 }) => {
-    const d = (x1 - x0) ** 2 + (y1 - y0) ** 2;
-    const b = r1 ** 2;
-
-    if (d > b) {
-        let x2 = (x0 + x1) / 2;
-        let y2 = (y0 + y1) / 2;
-        let r2 = Math.sqrt(d) / 2;
-
-        const a = r1 ** 2 / (2 * r2);
-
-        const h = Math.sqrt(r1 ** 2 - a ** 2);
-
-        const x = x1 + (a * (x2 - x1)) / r2;
-        const y = y1 + (a * (y2 - y1)) / r2;
-
-        const xRes1 = x + (h * (y2 - y1)) / r2;
-        const yRes1 = y - (h * (x2 - x1)) / r2;
-
-        const xRes2 = x - (h * (y2 - y1)) / r2;
-        const yRes2 = y + (h * (x2 - x1)) / r2;
-
-        return [
-            {
-                x: Math.floor(xRes1),
-                y: Math.floor(yRes1)
-            },
-            { x: Math.floor(xRes2), y: Math.floor(yRes2) }
-        ];
-    }
-};
-
-function App() {
+export function App() {
     useEffect(() => {
         const canvas = document.querySelector('#canvas');
         const context = canvas.getContext('2d');
@@ -47,8 +17,24 @@ function App() {
         });
 
         const mainCircle = CNV.createCircle({ x0: 700, y0: 300, className: 'mainCircle' });
-
         const dot = CNV.createCircle({ x0: 500, y0: 300, className: 'dot' });
+
+        const positionOneText = CNV.createText({
+            x0: 10,
+            y0: window.innerHeight - 40,
+            text: 'x: -; y: -'
+        });
+
+        const positionTwoText = CNV.createText({
+            x0: 10,
+            y0: window.innerHeight - 20,
+            text: 'x: -; y: -'
+        });
+
+        const updateText = ([dot1, dot2]) => {
+            positionOneText.update.text = `x: ${dot1.x}; y: ${dot1.y}`;
+            positionTwoText.update.text = `x: ${dot2.x}; y: ${dot2.y}`;
+        };
 
         const line1 = CNV.createLine({
             x0: dot.link.getCoords().start.x,
@@ -65,16 +51,16 @@ function App() {
         });
 
         const rangeLine = CNV.createLine({
-            x0: 800,
-            y0: 480,
-            x1: 980,
-            y1: 480,
+            x0: window.innerWidth - 200,
+            y0: window.innerHeight - 40,
+            x1: window.innerWidth - 20,
+            y1: window.innerHeight - 40,
             className: 'line'
         });
 
         const rangeCircle = CNV.createCircle({
-            x0: 800,
-            y0: 480,
+            x0: window.innerWidth - 200,
+            y0: window.innerHeight - 40,
             className: 'line'
         });
 
@@ -88,6 +74,8 @@ function App() {
                 yCircle: y,
                 rCircle: mainCircle.link.getCSS().radius
             });
+
+            updateText(res);
 
             CNV.combineRender(() => {
                 mainCircle.update.start.x = x;
@@ -115,6 +103,8 @@ function App() {
                 yCircle: mainCircle.link.getCoords().start.y,
                 rCircle: mainCircle.link.getCSS().radius
             });
+
+            updateText(res);
 
             CNV.combineRender(() => {
                 dot.update.start.x = x;
@@ -173,15 +163,8 @@ function App() {
     }, []);
 
     return (
-        <div className="App">
-            <canvas
-                id="canvas"
-                width={1000}
-                height={500}
-                style={{ border: '1px solid black', marginTop: 10 }}
-            />
+        <div>
+            <canvas id="canvas" width={window.innerWidth} height={window.innerHeight} />
         </div>
     );
 }
-
-export default App;

@@ -216,6 +216,11 @@ class Shape {
             set height(newHeight) {
                 link.height = newHeight;
                 render();
+            },
+
+            set text(text) {
+                link.text = text;
+                render();
             }
         };
     }
